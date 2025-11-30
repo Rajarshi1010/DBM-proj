@@ -9,8 +9,7 @@ venv/
 env/
 .env
 
-
-instance/
+postgres_data/
 
 
 .idea/
