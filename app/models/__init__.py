@@ -1,4 +1,4 @@
-from .user import User, Role
-from .book import BookPublication
-from .conference import ConferencePublication
-from .journal import JournalPublication, JournalType
+from .user import User, Role, UserBase
+from .book import BookPublication, BookCreate, BookRead
+from .conference import ConferencePublication, ConferenceCreate, ConferenceRead
+from .journal import JournalPublication, JournalType, JournalCreate, JournalRead

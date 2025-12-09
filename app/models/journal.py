@@ -1,20 +1,15 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
-from typing import TYPE_CHECKING
 import enum
 
 if TYPE_CHECKING:
     from .user import User
 
-
 class JournalType(str, enum.Enum):
     INTERNATIONAL = "International"
     NATIONAL = "National"
 
-
-class JournalPublication(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-
+class JournalBase(SQLModel):
     title_of_paper: str
     journal_type: JournalType = Field(default=JournalType.INTERNATIONAL)
     journal_name: str
@@ -22,7 +17,14 @@ class JournalPublication(SQLModel, table=True):
     issn: Optional[str] = None
     publication_month_year: str
     page_numbers: Optional[str] = None
-
-    # Foreign Key
     faculty_id: int = Field(foreign_key="user.id")
+
+class JournalPublication(JournalBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     faculty: "User" = Relationship(back_populates="journals")
+
+class JournalCreate(JournalBase):
+    pass
+
+class JournalRead(JournalBase):
+    id: int

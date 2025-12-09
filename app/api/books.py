@@ -3,53 +3,53 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.base import get_session
-from app.models.book import BookPublication
+# Import the new schemas
+from app.models.book import BookPublication, BookCreate, BookRead
 from app.models.user import User, Role
 from app.api.auth import get_current_user
 
 router = APIRouter()
 
 
-@router.post("/", response_model=BookPublication)
+# Input: BookCreate (No ID), Output: BookRead (With ID)
+@router.post("/", response_model=BookRead)
 def create_book(
-        book: BookPublication,
+        book_in: BookCreate,  # <--- CHANGED THIS
         current_user: Annotated[User, Depends(get_current_user)],
         session: Session = Depends(get_session)
 ):
-    """
-    Create a new Book.
-    - Faculty can only create for themselves (faculty_id is ignored/overwritten).
-    - Admins can create for others.
-    """
-    # Permission Logic
+    """Create a new Book."""
+    # 1. Convert Input Schema -> Database Model
+    # model_dump() converts the Pydantic object to a dictionary
+    book_db = BookPublication(**book_in.model_dump())
+
+    # 2. Permission Logic
     if current_user.role == Role.FACULTY:
         # Force the book to belong to the logged-in user
-        book.faculty_id = current_user.id
+        book_db.faculty_id = current_user.id
 
-    # If Admin, we respect the 'faculty_id' sent in the JSON,
-    # but we should check if that ID actually exists.
     elif current_user.role == Role.ADMIN:
-        if not session.get(User, book.faculty_id):
+        if not session.get(User, book_db.faculty_id):
             raise HTTPException(status_code=404, detail="Target faculty ID not found")
 
-    session.add(book)
+    session.add(book_db)
     session.commit()
-    session.refresh(book)
-    return book
+    session.refresh(book_db)
+    return book_db
 
 
-@router.get("/", response_model=List[BookPublication])
+@router.get("/", response_model=List[BookRead])
 def list_books(
         faculty_id: int | None = None,
         session: Session = Depends(get_session)
 ):
-    """List all books, or filter by specific faculty_id."""
     query = select(BookPublication)
     if faculty_id:
         query = query.where(BookPublication.faculty_id == faculty_id)
     return session.exec(query).all()
 
 
+# Delete endpoint remains same...
 @router.delete("/{book_id}")
 def delete_book(
         book_id: int,
@@ -60,9 +60,8 @@ def delete_book(
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
 
-    # Only Admin or the Owner can delete
     if current_user.role != Role.ADMIN and book.faculty_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this book")
+        raise HTTPException(status_code=403, detail="Not authorized")
 
     session.delete(book)
     session.commit()

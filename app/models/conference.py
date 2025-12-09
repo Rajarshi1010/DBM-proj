@@ -1,20 +1,23 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .user import User
 
-
-class ConferencePublication(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-
+class ConferenceBase(SQLModel):
     title_of_paper: str
     conference_name: str
     held_on: str
     place: str
     isbn: Optional[str] = None
-
-    # Foreign Key
     faculty_id: int = Field(foreign_key="user.id")
+
+class ConferencePublication(ConferenceBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     faculty: "User" = Relationship(back_populates="conferences")
+
+class ConferenceCreate(ConferenceBase):
+    pass
+
+class ConferenceRead(ConferenceBase):
+    id: int
