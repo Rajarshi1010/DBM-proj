@@ -36,8 +36,6 @@ class FacultyUpdate(UserBase):
     is_active: bool | None = None
     password: str | None = None  # Optional password reset
 
-
-
 @router.post("/faculty", response_model=UserBase)
 def create_faculty_account(
         faculty_in: FacultyCreate,
