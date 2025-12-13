@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.base import get_session
-# Import the new schemas
 from app.models.book import BookPublication, BookCreate, BookRead
 from app.models.user import User, Role
 from app.api.auth import get_current_user

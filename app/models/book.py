@@ -20,6 +20,10 @@ class BookPublication(BookBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     faculty: "User" = Relationship(back_populates="books")
 
+    @property
+    def faculty_name(self) -> str:
+        return self.faculty.name if self.faculty else "Unknown"
+
 # 3. Create Schema: What the User sends (Strictly NO ID allowed)
 class BookCreate(BookBase):
     pass

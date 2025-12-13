@@ -23,6 +23,10 @@ class JournalPublication(JournalBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     faculty: "User" = Relationship(back_populates="journals")
 
+    @property
+    def faculty_name(self) -> str:
+        return self.faculty.name if self.faculty else "Unknown"
+
 class JournalCreate(JournalBase):
     pass
 

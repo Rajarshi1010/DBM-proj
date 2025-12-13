@@ -16,6 +16,10 @@ class ConferencePublication(ConferenceBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     faculty: "User" = Relationship(back_populates="conferences")
 
+    @property
+    def faculty_name(self) -> str:
+        return self.faculty.name if self.faculty else "Unknown"
+
 class ConferenceCreate(ConferenceBase):
     pass
 
