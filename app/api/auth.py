@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from sqlmodel import Session, select
 
+from app.api.faculty import UserProfile
 from app.db.base import get_session
 from app.core.config import settings
 from app.core.security import verify_password, create_access_token, get_password_hash
@@ -105,4 +106,15 @@ def update_my_profile(
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
+    return current_user
+
+@router.get("/me", response_model=UserProfile)
+def get_my_profile(
+    # The Token does the work here. No 'user_id' in URL.
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """
+    Fetch the currently logged-in faculty's full profile.
+    Includes: Name, Email, Dept, AND all Books, Conferences, Journals.
+    """
     return current_user
