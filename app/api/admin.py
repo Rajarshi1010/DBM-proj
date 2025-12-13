@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.base import get_session
-from app.models.user import User, UserBase, Role
+from app.models.user import User, UserBase, Role, UserUpdate
 from app.core.security import get_password_hash
 from app.api.auth import get_current_user
 
@@ -66,10 +66,10 @@ def create_faculty_account(
     return db_user
 
 
-@router.patch("/faculty/{user_id}", response_model=UserBase)
+@router.patch("/faculty/{user_id}", response_model=User) # Return full User, not just Base
 def update_faculty_account(
         user_id: int,
-        faculty_update: FacultyUpdate,
+        faculty_update: FacultyUpdate, # Ensure this schema has all fields Optional
         current_admin: Annotated[User, Depends(get_current_admin)],
         session: Session = Depends(get_session)
 ):
@@ -80,17 +80,16 @@ def update_faculty_account(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Update fields if they are provided
+    # 1. Prepare data (exclude empty fields)
     update_data = faculty_update.model_dump(exclude_unset=True)
 
-    # Handle password separately if it's being updated
-    if "password" in update_data:
+    # 2. Handle Password Hashing
+    if "password" in update_data and update_data["password"]:
         password = update_data.pop("password")
         db_user.hashed_password = get_password_hash(password)
 
-    # Update remaining fields
-    for key, value in update_data.items():
-        setattr(db_user, key, value)
+    # 3. Clean Update (Replaces your 'for' loop)
+    db_user.sqlmodel_update(update_data)
 
     session.add(db_user)
     session.commit()

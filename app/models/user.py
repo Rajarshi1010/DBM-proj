@@ -29,3 +29,9 @@ class User(UserBase, table=True):
     books: List["BookPublication"] = Relationship(back_populates="faculty")
     conferences: List["ConferencePublication"] = Relationship(back_populates="faculty")
     journals: List["JournalPublication"] = Relationship(back_populates="faculty")
+
+class UserUpdate(SQLModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    department: Optional[str] = None
+    password: Optional[str] = None # Optional: if they want to change password
