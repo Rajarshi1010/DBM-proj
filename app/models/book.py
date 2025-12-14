@@ -12,12 +12,12 @@ class BookBase(SQLModel):
     title: str
     publisher_details: str
     publication_month_year: str
-    # Faculty ID is needed to link the book, but we validate it in the API
-    faculty_id: int = Field(foreign_key="user.id")
+
 
 # 2. Table Model: The actual DB table (Adds ID & Relationship)
 class BookPublication(BookBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    faculty_id: int = Field(foreign_key="user.id")  # Foreign Key is here
     faculty: "User" = Relationship(back_populates="books")
 
     @property
@@ -26,8 +26,11 @@ class BookPublication(BookBase, table=True):
 
 # 3. Create Schema: What the User sends (Strictly NO ID allowed)
 class BookCreate(BookBase):
-    pass
+    # Optional: Admins can use this. Faculty don't need to.
+    faculty_id: Optional[int] = None
 
 # 4. Read Schema: What the API returns (Includes ID)
 class BookRead(BookBase):
     id: int
+    faculty_id: int
+    faculty_name: str

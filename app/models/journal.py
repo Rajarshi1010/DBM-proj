@@ -17,10 +17,11 @@ class JournalBase(SQLModel):
     issn: Optional[str] = None
     publication_month_year: str
     page_numbers: Optional[str] = None
-    faculty_id: int = Field(foreign_key="user.id")
+
 
 class JournalPublication(JournalBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    faculty_id: int = Field(foreign_key="user.id")
     faculty: "User" = Relationship(back_populates="journals")
 
     @property
@@ -28,7 +29,9 @@ class JournalPublication(JournalBase, table=True):
         return self.faculty.name if self.faculty else "Unknown"
 
 class JournalCreate(JournalBase):
-    pass
+    faculty_id: Optional[int] = None
 
 class JournalRead(JournalBase):
     id: int
+    faculty_id: int
+    faculty_name: str

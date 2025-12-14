@@ -10,10 +10,11 @@ class ConferenceBase(SQLModel):
     held_on: str
     place: str
     isbn: Optional[str] = None
-    faculty_id: int = Field(foreign_key="user.id")
+
 
 class ConferencePublication(ConferenceBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    faculty_id: int = Field(foreign_key="user.id")
     faculty: "User" = Relationship(back_populates="conferences")
 
     @property
@@ -21,7 +22,9 @@ class ConferencePublication(ConferenceBase, table=True):
         return self.faculty.name if self.faculty else "Unknown"
 
 class ConferenceCreate(ConferenceBase):
-    pass
+    faculty_id: Optional[int] = None
 
 class ConferenceRead(ConferenceBase):
     id: int
+    faculty_id: int
+    faculty_name: str

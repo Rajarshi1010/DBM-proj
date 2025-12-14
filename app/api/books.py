@@ -17,19 +17,21 @@ def create_book(
         current_user: Annotated[User, Depends(get_current_user)],
         session: Session = Depends(get_session)
 ):
-    """Create a new Book."""
-    # 1. Convert Input Schema -> Database Model
-    # model_dump() converts the Pydantic object to a dictionary
-    book_db = BookPublication(**book_in.model_dump())
+    # 1. Dump data (excluding faculty_id initially)
+    data = book_in.model_dump(exclude={"faculty_id"})
+    book_db = BookPublication(**data)
 
     # 2. Permission Logic
     if current_user.role == Role.FACULTY:
         # Force the book to belong to the logged-in user
         book_db.faculty_id = current_user.id
 
-    elif current_user.role == Role.ADMIN:
-        if not session.get(User, book_db.faculty_id):
+    elif current_user.role == Role.ADMIN:        # Admins must specify which faculty to assign the book to
+        if not book_in.faculty_id:
+            raise HTTPException(status_code=400, detail="Admins must provide 'faculty_id' to assign the book.")
+        if not session.get(User, book_in.faculty_id):
             raise HTTPException(status_code=404, detail="Target faculty ID not found")
+        book_db.faculty_id = book_in.faculty_id
 
     session.add(book_db)
     session.commit()
@@ -48,7 +50,6 @@ def list_books(
     return session.exec(query).all()
 
 
-# Delete endpoint remains same...
 @router.delete("/{book_id}")
 def delete_book(
         book_id: int,
