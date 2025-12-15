@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, faculty, books, conferences, journals, admin
+from app.api import auth, faculty, books, conferences, journals, admin, upload
 
 app = FastAPI(title="Department API")
 
@@ -20,6 +20,7 @@ app.include_router(books.router, prefix="/books", tags=["Books"])
 app.include_router(conferences.router, prefix="/conferences", tags=["Conferences"])
 app.include_router(journals.router, prefix="/journals", tags=["Journals"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(upload.router, prefix="/upload", tags=["Bulk Upload"])
 @app.get("/")
 def root():
     return {"message": "API is running"}
