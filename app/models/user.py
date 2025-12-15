@@ -1,4 +1,6 @@
 from typing import List, Optional
+
+from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, Relationship
 import enum
 
@@ -15,7 +17,7 @@ class JournalPublication(SQLModel): ...
 # 1. UserBase: Contains fields shared by DB and API (No relationships here!)
 class UserBase(SQLModel):
     name: str
-    email: str = Field(unique=True, index=True)
+    email: EmailStr= Field(unique=True, index=True)
     role: Role = Field(default=Role.FACULTY)
     department: str = "Department of Machine Learning"
     is_active: bool = Field(default=True)

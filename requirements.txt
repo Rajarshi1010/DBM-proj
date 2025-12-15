@@ -1,9 +1,13 @@
 fastapi
 uvicorn[standard]
+pydantic
+pydantic-settings
+email-validator
 sqlmodel
 alembic
 psycopg[binary]
-bcrypt==3.2.2
 python-jose[cryptography]
+passlib[bcrypt]
 python-multipart
-pydantic-settings
+pandas
+openpyxl
