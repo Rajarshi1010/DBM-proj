@@ -1,9 +1,9 @@
-from typing import Annotated, List
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.base import get_session
-from app.models.user import User, UserBase, Role, UserUpdate
+from app.models.user import User, UserBase, Role
 from app.core.security import get_password_hash
 from app.api.auth import get_current_user
 
