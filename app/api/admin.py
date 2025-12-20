@@ -4,6 +4,9 @@ from sqlmodel import Session, select
 
 from app.db.base import get_session
 from app.models.user import User, UserBase, Role
+from app.models.book import BookPublication
+from app.models.conference import ConferencePublication
+from app.models.journal import JournalPublication
 from app.core.security import get_password_hash
 from app.api.auth import get_current_user
 
@@ -45,16 +48,11 @@ def create_faculty_account(
     """
     Admin only: Create a new faculty account.
     """
-    # 1. Check if email already exists
     existing_user = session.exec(select(User).where(User.email == faculty_in.email)).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # 2. Hash the password
     hashed_pwd = get_password_hash(faculty_in.password)
-
-    # 3. Create DB Object
-    # We use model_dump to extract fields from UserBase (name, email, role, etc.)
     db_user = User(
         **faculty_in.model_dump(exclude={"password"}),
         hashed_password=hashed_pwd
@@ -69,8 +67,7 @@ def create_faculty_account(
 @router.patch("/faculty/{user_id}", response_model=User) # Return full User, not just Base
 def update_faculty_account(
         user_id: int,
-        faculty_update: FacultyUpdate, # Ensure this schema has all fields Optional
-        current_admin: Annotated[User, Depends(get_current_admin)],
+        faculty_update: FacultyUpdate,
         session: Session = Depends(get_session)
 ):
     """
@@ -80,18 +77,57 @@ def update_faculty_account(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 1. Prepare data (exclude empty fields)
     update_data = faculty_update.model_dump(exclude_unset=True)
 
-    # 2. Handle Password Hashing
     if "password" in update_data and update_data["password"]:
         password = update_data.pop("password")
         db_user.hashed_password = get_password_hash(password)
-
-    # 3. Clean Update (Replaces your 'for' loop)
     db_user.sqlmodel_update(update_data)
 
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
     return db_user
+
+
+@router.delete("/users/{user_id}")
+def delete_faculty(
+        user_id: int,
+        current_admin: Annotated[User, Depends(get_current_admin)],
+        session: Session = Depends(get_session)
+):
+    """
+    Admin Only: Delete a user (Faculty or Admin).
+    Also deletes all their linked Books, Conferences, and Journals.
+    Prevents admin from deleting themselves.
+    """
+    # Safety Check: Admin cannot delete themselves
+    if user_id == current_admin.id:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot delete your own account."
+        )
+    user_to_delete = session.get(User, user_id)
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User not found")
+
+
+    books = session.exec(select(BookPublication).where(BookPublication.faculty_id == user_id)).all()
+    for book in books:
+        session.delete(book)
+
+    confs = session.exec(select(ConferencePublication).where(ConferencePublication.faculty_id == user_id)).all()
+    for conf in confs:
+        session.delete(conf)
+
+    journals = session.exec(select(JournalPublication).where(JournalPublication.faculty_id == user_id)).all()
+    for journal in journals:
+        session.delete(journal)
+
+    session.delete(user_to_delete)
+    session.commit()
+
+    return {
+        "ok": True,
+        "message": f"User '{user_to_delete.name}' and all linked publications deleted successfully."
+    }
