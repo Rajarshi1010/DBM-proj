@@ -10,7 +10,6 @@ from app.core.config import settings
 from app.core.security import verify_password, create_access_token, get_password_hash
 from app.models.user import User, UserUpdate
 
-# This tells FastAPI that the client should send the token in the "Authorization" header
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 router = APIRouter()
