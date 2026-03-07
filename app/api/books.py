@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.base import get_session
-from app.models.book import BookPublication, BookCreate, BookRead
+from app.models.book import BookPublication, BookCreate, BookRead, BookUpdate
 from app.models.user import User, Role
 from app.api.auth import get_current_user
 
@@ -38,6 +38,42 @@ def create_book(
     session.refresh(book_db)
     return book_db
 
+@router.patch("/{book_id}", response_model=BookRead)
+def update_book(
+    book_id: int,
+    book_in: BookUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Session = Depends(get_session)
+):
+    # 1. Fetch the book
+    db_book = session.get(BookPublication, book_id)
+    if not db_book:
+        raise HTTPException(status_code=404, detail="Book entry not found")
+
+    # 2. Authorization: Admin or Owner?
+    if current_user.role != Role.ADMIN and db_book.faculty_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this book")
+
+    # 3. Dump data excluding unset fields
+    update_data = book_in.model_dump(exclude_unset=True)
+
+    # 4. Handle faculty_id reassignment
+    if "faculty_id" in update_data:
+        if current_user.role == Role.ADMIN:
+            if not session.get(User, update_data["faculty_id"]):
+                raise HTTPException(status_code=404, detail="Target faculty not found")
+        else:
+            # Silently prevent non-admins from changing ownership
+            del update_data["faculty_id"]
+
+    # 5. Apply and Commit
+    for key, value in update_data.items():
+        setattr(db_book, key, value)
+
+    session.add(db_book)
+    session.commit()
+    session.refresh(db_book)
+    return db_book
 
 @router.get("/", response_model=List[BookRead])
 def list_books(

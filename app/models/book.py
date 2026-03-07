@@ -29,6 +29,12 @@ class BookCreate(BookBase):
     # Optional: Admins can use this. Faculty don't need to.
     faculty_id: Optional[int] = None
 
+class BookUpdate(SQLModel):
+    title: Optional[str] = None
+    publisher_details: Optional[str] = None
+    publication_month_year: Optional[str] = None
+    faculty_id: Optional[int] = None
+
 # 4. Read Schema: What the API returns (Includes ID)
 class BookRead(BookBase):
     id: int

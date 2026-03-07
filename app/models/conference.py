@@ -24,6 +24,14 @@ class ConferencePublication(ConferenceBase, table=True):
 class ConferenceCreate(ConferenceBase):
     faculty_id: Optional[int] = None
 
+class ConferenceUpdate(SQLModel):
+    title_of_paper: Optional[str] = None
+    conference_name: Optional[str] = None
+    held_on: Optional[str] = None
+    place: Optional[str] = None
+    isbn: Optional[str] = None
+    faculty_id: Optional[int] = None
+
 class ConferenceRead(ConferenceBase):
     id: int
     faculty_id: int
