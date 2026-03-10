@@ -31,6 +31,16 @@ class JournalPublication(JournalBase, table=True):
 class JournalCreate(JournalBase):
     faculty_id: Optional[int] = None
 
+class JournalUpdate(SQLModel):
+    title_of_paper: Optional[str] = None
+    journal_type: Optional[JournalType] = None
+    journal_name: Optional[str] = None
+    url_doi: Optional[str] = None
+    issn: Optional[str] = None
+    publication_month_year: Optional[str] = None
+    page_numbers: Optional[str] = None
+    faculty_id: Optional[int] = None
+
 class JournalRead(JournalBase):
     id: int
     faculty_id: int
