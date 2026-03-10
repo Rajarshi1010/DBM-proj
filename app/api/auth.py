@@ -31,7 +31,6 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # Decode the token using our SECRET_KEY
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         user_id: str = payload.get("sub")
         if user_id is None:
@@ -94,7 +93,7 @@ def update_my_profile(
     Update the logged-in user's profile.
     No 'user_id' needed in URL because 'current_user' COMES from the token.
     """
-    # 1. Update basic fields
+
     if update_data.name:
         current_user.name = update_data.name
     if update_data.email:
@@ -102,7 +101,7 @@ def update_my_profile(
     if update_data.department:
         current_user.department = update_data.department
 
-    # 2. Handle Password Change (Hash it first!)
+
     if update_data.password:
         current_user.hashed_password = get_password_hash(update_data.password)
 

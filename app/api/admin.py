@@ -1,7 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-
 from app.db.base import get_session
 from app.models.user import User, UserBase, Role
 from app.models.book import BookPublication
@@ -27,7 +26,7 @@ def get_current_admin(user: Annotated[User, Depends(get_current_user)]) -> User:
 
 
 class FacultyCreate(UserBase):
-    password: str # Plaintext password for account creation
+    password: str
 
 
 class FacultyUpdate(UserBase):
@@ -37,7 +36,7 @@ class FacultyUpdate(UserBase):
     department: str | None = None
     role: Role | None = None
     is_active: bool | None = None
-    password: str | None = None  # Optional password reset
+    password: str | None = None
 
 @router.post("/faculty", response_model=UserBase)
 def create_faculty_account(
@@ -101,7 +100,6 @@ def delete_faculty(
     Also deletes all their linked Books, Conferences, and Journals.
     Prevents admin from deleting themselves.
     """
-    # Safety Check: Admin cannot delete themselves
     if user_id == current_admin.id:
         raise HTTPException(
             status_code=400,
