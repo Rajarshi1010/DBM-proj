@@ -11,3 +11,5 @@ passlib[bcrypt]
 python-multipart
 pandas
 openpyxl
+requests
+beautifulsoup4
