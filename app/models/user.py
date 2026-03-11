@@ -36,4 +36,4 @@ class UserUpdate(SQLModel):
     name: Optional[str] = None
     email: Optional[str] = None
     department: Optional[str] = None
-    password: Optional[str] = None # Optional: if they want to change password
+    password: Optional[str] = None # Otional: if they want to change password
