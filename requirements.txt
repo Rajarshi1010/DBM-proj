@@ -5,7 +5,7 @@ pydantic-settings
 email-validator
 sqlmodel
 alembic
-psycopg-binary
+psycopg[binary]
 
 python-jose[cryptography]
 passlib[bcrypt]
