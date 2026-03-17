@@ -32,10 +32,12 @@ HEADER_MAP = {
     "publicationyear": "publication_month_year",
     "monthandyear": "publication_month_year",
     "month&year": "publication_month_year",
+    "publication_month_year":"publication_month_year",
 
     # Book Fields
     "publisher": "publisher_details",
     "publisherdetails": "publisher_details",
+    "publisher_details":"publisher_details",
 
     # Conference Fields
     "conferencename": "conference_name",
