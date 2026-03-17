@@ -63,31 +63,50 @@ def create_faculty_account(
     return db_user
 
 
-@router.patch("/faculty/{user_id}", response_model=User) # Return full User, not just Base
+@router.patch("/faculty/{user_id}", response_model=User)
 def update_faculty_account(
         user_id: int,
         faculty_update: FacultyUpdate,
+        current_user: Annotated[User, Depends(get_current_user)],  # <-- ADDED THIS
         session: Session = Depends(get_session)
 ):
-    """
-    Admin only: Update a faculty account (change role, deactivate, reset password).
-    """
+
+    # 1. Authorization Check: Are you an Admin OR are you updating your own account?
+    if current_user.role != Role.ADMIN and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own account."
+        )
+
+    # 2. Security Check: Prevent faculty from making themselves Admin or deactivating themselves
+    if current_user.role != Role.ADMIN:
+        if faculty_update.role is not None or faculty_update.is_active is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Faculty members cannot change their role or active status."
+            )
+
+    # 3. Fetch user from DB
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # 4. Process updates
     update_data = faculty_update.model_dump(exclude_unset=True)
 
+    # Handle password hashing if a new password is provided
     if "password" in update_data and update_data["password"]:
         password = update_data.pop("password")
         db_user.hashed_password = get_password_hash(password)
+
+    # Update the remaining fields
     db_user.sqlmodel_update(update_data)
 
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
-    return db_user
 
+    return db_user
 
 @router.delete("/users/{user_id}")
 def delete_faculty(
