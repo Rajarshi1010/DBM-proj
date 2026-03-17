@@ -1,4 +1,4 @@
-from typing import  Any
+from typing import Any
 from fastapi import APIRouter, UploadFile, File, Depends
 from sqlmodel import Session, select
 import pandas as pd
@@ -13,12 +13,13 @@ from app.api.auth import get_current_user
 
 router = APIRouter()
 
+
 def normalize_string(text: str) -> str:
     if not isinstance(text, str):
         return ""
-    # Remove 'Dr.', 'Prof.', 'Mr.', 'Ms.' (case insensitive)
     text = re.sub(r'^(dr\.|prof\.|mr\.|ms\.)\s*', '', text.lower().strip())
     return re.sub(r'[^a-z0-9]', '', text)
+
 
 HEADER_MAP = {
     # Common Fields
@@ -56,23 +57,26 @@ HEADER_MAP = {
     "pagenumbers": "page_numbers",
     "pages": "page_numbers",
 
-    # Faculty Identifier Fields
+    # Name Identifiers (Kept so the data passes through cleanly)
     "facultyname": "faculty_name",
     "author": "faculty_name",
     "authorname": "faculty_name",
-    "faculty": "faculty_name"
+    "faculty": "faculty_name",
+
+    # NEW: Email Identifiers (Used for strict DB mapping)
+    "email": "email",
+    "emailid": "email",
+    "facultyemail": "email",
+    "authoremail": "email"
 }
 
 
 def clean_headers(df: pd.DataFrame) -> pd.DataFrame:
-    #Renames dataframe columns based on the map
-    df.columns = [normalize_string(col) for col in df.columns]  # normalize excel headers
-
+    df.columns = [normalize_string(col) for col in df.columns]
     rename_dict = {}
     for col in df.columns:
         if col in HEADER_MAP:
             rename_dict[col] = HEADER_MAP[col]
-
     return df.rename(columns=rename_dict)
 
 
@@ -82,38 +86,50 @@ def process_upload(
         session: Session,
         current_user: User
 ) -> dict:
+    # Fetch all users
     users = session.exec(select(User)).all()
-    user_map = {normalize_string(u.name): u.id for u in users}
+
+    # Map users strictly by email for collision-proof lookups
+    user_map = {u.email.lower().strip(): u.id for u in users if u.email}
 
     success_count = 0
     errors = []
 
-    # Iterate Rows
     for index, row in df.iterrows():
         try:
             row_data = row.to_dict()
-            # 1. Map Faculty Name to ID
-            author_name = row_data.get("faculty_name")
-            if not author_name or pd.isna(author_name):
-                errors.append(f"Row {index + 2}: Missing Faculty Name")
+
+            # Extract both Name (for logs) and Email (for mapping)
+            author_name = row_data.get("faculty_name", "Unknown Faculty")
+            author_email = row_data.get("email")
+
+            # 1. Check if Email is missing
+            if not author_email or pd.isna(author_email):
+                errors.append(f"Row {index + 2}: Missing Email for '{author_name}'. Cannot map to database.")
                 continue
-            normalized_author = normalize_string(str(author_name))
-            faculty_id = user_map.get(normalized_author)
+
+            # Clean the email
+            cleaned_email = str(author_email).lower().strip()
+
+            # 2. Lookup the ID using the email
+            faculty_id = user_map.get(cleaned_email)
 
             if not faculty_id:
-                errors.append(f"Row {index + 2}: Faculty '{author_name}' not found.")
+                errors.append(f"Row {index + 2}: Faculty '{author_name}' with email '{author_email}' not found.")
                 continue
-            # Permission Check
+
+            # 3. Permission Check
             if current_user.role != Role.ADMIN and faculty_id != current_user.id:
                 errors.append(f"Row {index + 2}: Permission Denied. You cannot upload for '{author_name}'.")
                 continue
 
-            # 2. Clean Data: Remove empty or NaN fields
+            # 4. Clean Data: Remove empty/NaN fields
             clean_data = {}
             for k, v in row_data.items():
                 if k in model_class.model_fields and pd.notna(v) and str(v).strip() != "":
                     clean_data[k] = v
-            # 3. Create Object (issn or similar fields to be set as none if missing)
+
+            # 5. Create Object and inject the bulletproof faculty_id
             db_obj = model_class(**clean_data)
             db_obj.faculty_id = faculty_id
 
