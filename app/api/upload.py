@@ -130,11 +130,29 @@ def process_upload(
                 errors.append(f"Row {index + 2}: Permission Denied. You cannot upload for '{author_name}'.")
                 continue
 
-            # 4. Clean Data: Remove empty/NaN fields
+            # 4. Clean Data & Handle Title Mismatches
             clean_data = {}
             for k, v in row_data.items():
+                # Fix: Header mismatches
+                if k == "title" and "title_of_paper" in model_class.model_fields:
+                    k = "title_of_paper"
+                elif k == "title_of_paper" and "title" in model_class.model_fields:
+                    k = "title"
+
+                # Check if value is not empty
                 if k in model_class.model_fields and pd.notna(v) and str(v).strip() != "":
-                    clean_data[k] = v
+                    val = v
+
+                    # ---> NEW: Clean the actual data value! <---
+                    if isinstance(val, str):
+                        # Remove invisible spaces, line breaks, and Excel artifacts (\xa0)
+                        val = val.strip().replace('\xa0', '')
+
+                        # If it's an Enum like journal_type, force it to match your strict DB format
+                        if k == "journal_type":
+                            val = val.upper()
+
+                    clean_data[k] = val
 
             # 5. Create Object and inject the bulletproof faculty_id
             db_obj = model_class(**clean_data)

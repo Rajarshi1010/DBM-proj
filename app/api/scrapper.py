@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 def scrape_profile(name, dept):
     # Send a request to the website
     headers = {'User-Agent': 'Mozilla/5.0'}
-    url = "https://bmsce.ac.in/home/" + str(dept).replace(" ", "-").replace("(","-").replace(")","-") + "Faculty"
+    url = "https://bmsce.ac.in/home/" + str(dept).replace(" (","-").replace(" ", "-").replace(")","-") + "Faculty"
     response = requests.get(url, headers=headers)
     data = {"name": str(name), "department": str(dept)}
 
