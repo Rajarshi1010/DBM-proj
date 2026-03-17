@@ -27,6 +27,7 @@ HEADER_MAP = {
     "titleofbook": "title",
     "booktitle": "title",
     "titleofpaper": "title_of_paper",
+"title_of_paper":"title_of_paper",
     "papertitle": "title_of_paper",
     "year": "publication_month_year",
     "publicationyear": "publication_month_year",
@@ -41,7 +42,9 @@ HEADER_MAP = {
 
     # Conference Fields
     "conferencename": "conference_name",
+"conference_name":"conference_name",
     "heldon": "held_on",
+"held_on":"held_on",
     "date": "held_on",
     "place": "place",
     "location": "place",
@@ -50,17 +53,19 @@ HEADER_MAP = {
 
     # Journal Fields
     "journalname": "journal_name",
+"journal_name":"journal_name",
     "type": "journal_type",
     "journaltype": "journal_type",
-    "urldoi": "url_doi",
+"journal_type":"journal_type",
+    "url_doi": "url_doi",
     "doi": "url_doi",
     "issn": "issn",
     "issnno": "issn",
-    "pagenumbers": "page_numbers",
+    "page_numbers": "page_numbers",
     "pages": "page_numbers",
 
     # Name Identifiers (Kept so the data passes through cleanly)
-    "facultyname": "faculty_name",
+    "faculty_name": "faculty_name",
     "author": "faculty_name",
     "authorname": "faculty_name",
     "faculty": "faculty_name",
