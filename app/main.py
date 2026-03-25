@@ -5,7 +5,10 @@ from app.api import auth, faculty, books, conferences, journals, admin, upload
 app = FastAPI(title="Department API")
 
 # --- CORS (Crucial for React Frontend) ---
-
+origins = [
+    "http://localhost:3000",
+    "https://bms-kappa-two.vercel.app",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
