@@ -159,12 +159,12 @@ def process_upload(
             db_obj.faculty_id = faculty_id
 
             session.add(db_obj)
+            session.commit()
             success_count += 1
 
         except Exception as e:
+            session.rollback()
             errors.append(f"Row {index + 2}: Error processing - {str(e)}")
-
-    session.commit()
 
     return {
         "status": "completed",
