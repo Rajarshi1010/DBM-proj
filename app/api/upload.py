@@ -22,29 +22,26 @@ def normalize_string(text: str) -> str:
 
 
 HEADER_MAP = {
-    # Common Fields
     "title": "title",
     "titleofbook": "title",
     "booktitle": "title",
+
     "titleofpaper": "title_of_paper",
-"title_of_paper":"title_of_paper",
     "papertitle": "title_of_paper",
+
     "year": "publication_month_year",
     "publicationyear": "publication_month_year",
     "monthandyear": "publication_month_year",
-    "month&year": "publication_month_year",
-    "publication_month_year":"publication_month_year",
+    "monthyear": "publication_month_year",
+    "publicationmonthyear": "publication_month_year",
 
     # Book Fields
     "publisher": "publisher_details",
     "publisherdetails": "publisher_details",
-    "publisher_details":"publisher_details",
 
     # Conference Fields
     "conferencename": "conference_name",
-"conference_name":"conference_name",
     "heldon": "held_on",
-"held_on":"held_on",
     "date": "held_on",
     "place": "place",
     "location": "place",
@@ -53,24 +50,25 @@ HEADER_MAP = {
 
     # Journal Fields
     "journalname": "journal_name",
-"journal_name":"journal_name",
     "type": "journal_type",
     "journaltype": "journal_type",
-"journal_type":"journal_type",
-    "url_doi": "url_doi",
+
+    "urldoi": "url_doi",
     "doi": "url_doi",
+
     "issn": "issn",
     "issnno": "issn",
-    "page_numbers": "page_numbers",
+
+    "pagenumbers": "page_numbers",
     "pages": "page_numbers",
 
-    # Name Identifiers (Kept so the data passes through cleanly)
-    "faculty_name": "faculty_name",
+    # Name Identifiers
+    "facultyname": "faculty_name",
     "author": "faculty_name",
     "authorname": "faculty_name",
     "faculty": "faculty_name",
 
-    # NEW: Email Identifiers (Used for strict DB mapping)
+    # Email Identifiers
     "email": "email",
     "emailid": "email",
     "facultyemail": "email",
