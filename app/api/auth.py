@@ -11,8 +11,6 @@ from app.core.security import verify_password, create_access_token, get_password
 
 from app.models.user import User, UserUpdate
 
-from .scrapper import scrape_profile
-
 # This tells FastAPI that the client should send the token in the "Authorization" header
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
@@ -112,13 +110,15 @@ def update_my_profile(
 
 @router.get("/me")
 def get_my_profile(
-    # The Token does the work here. No 'user_id' in URL.
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """
-    Fetch the currently logged-in faculty's full profile.
-    Includes: Name, Email, Dept, AND all Books, Conferences, Journals.
-    """
-    data = scrape_profile(current_user.name, current_user.department)
-    data.update({"id": current_user.id, "books": current_user.books, "conferences": current_user.conferences, "journals": current_user.journals})
-    return data
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "department": current_user.department,
+        "role": current_user.role, # Optional, but good for the frontend to know
+        "books": current_user.books,
+        "conferences": current_user.conferences,
+        "journals": current_user.journals
+    }
